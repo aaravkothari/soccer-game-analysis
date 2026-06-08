@@ -1,0 +1,14 @@
+.venv/
+
+yolo26s.pt
+yolo26n.pt
+
+training/football-players-detection-1/
+training/Soccer-1/
+training/runs/
+
+runs/*
+
+models/*
+
+input_videos/*
