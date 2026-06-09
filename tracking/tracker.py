@@ -1,10 +1,10 @@
 from ultralytics import YOLO
 import supervision as sv
-from trackers import ByteTrackTracker
 import pickle
 import os
-import cv2
 import numpy as np
+import pandas as pd
+import cv2
 import sys 
 sys.path.append('../')
 from utils import get_center_of_bbox, get_bbox_width
@@ -12,7 +12,7 @@ from utils import get_center_of_bbox, get_bbox_width
 class Tracker:
     def __init__(self, model_path):
         self.model = YOLO(model_path) 
-        self.tracker = ByteTrackTracker()
+        self.tracker = sv.ByteTrack()
 
     def detect_frames(self, frames):
         batch_size=20 
@@ -50,7 +50,7 @@ class Tracker:
                     detection_supervision.class_id[object_ind] = cls_names_inv["player"]
 
             # Track Objects
-            detection_with_tracks = self.tracker.update(detection_supervision)
+            detection_with_tracks = self.tracker.update_with_detections(detection_supervision)
 
             tracks["players"].append({})
             tracks["referees"].append({})
@@ -79,7 +79,7 @@ class Tracker:
                 pickle.dump(tracks,f)
 
         return tracks
-
+    
     def draw_ellipse(self,frame,bbox,color,track_id=None):
         y2 = int(bbox[3])
         x_center, _ = get_center_of_bbox(bbox)
@@ -141,6 +141,7 @@ class Tracker:
 
         return frame
 
+
     def draw_annotations(self,video_frames, tracks):
         output_video_frames= []
         for frame_num, frame in enumerate(video_frames):
@@ -152,8 +153,12 @@ class Tracker:
 
             # Draw Players
             for track_id, player in player_dict.items():
-                frame = self.draw_ellipse(frame, player["bbox"],(0,0,255), track_id)
-            
+                color = player.get("team_color",(0,0,255))
+                frame = self.draw_ellipse(frame, player["bbox"],color, track_id)
+
+                if player.get('has_ball',False):
+                    frame = self.draw_traingle(frame, player["bbox"],(0,0,255))
+
             # Draw Referee
             for _, referee in referee_dict.items():
                 frame = self.draw_ellipse(frame, referee["bbox"],(0,255,255))
@@ -162,7 +167,7 @@ class Tracker:
             for track_id, ball in ball_dict.items():
                 frame = self.draw_traingle(frame, ball["bbox"],(0,255,0))
 
+
             output_video_frames.append(frame)
 
         return output_video_frames
-
