@@ -5,6 +5,11 @@ yolo26n.pt
 
 training/football-players-detection-1/
 training/Soccer-1/
+training/yolo11x.pt
+training/yolo26m.pt
+training/yolo26x.pt
+training/futbol-players-9
+training/Soccer-Players-15
 training/runs/
 
 runs/*
